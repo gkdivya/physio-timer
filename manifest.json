@@ -1,0 +1,33 @@
+{
+  "name": "PhysioTimer - Guided Exercise Coach",
+  "short_name": "PhysioTimer",
+  "description": "Your personal physiotherapy exercise timer with audio guidance and configurable routines",
+  "start_url": "/physio-timer/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230ea5e9' width='192' height='192'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='80' font-weight='bold' fill='white' font-family='system-ui'>PT</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230ea5e9' width='192' height='192'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='80' font-weight='bold' fill='white' font-family='system-ui'>PT</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%230f172a' width='540' height='720'/><rect fill='%231e293b' width='540' height='100'/><text x='270' y='60' text-anchor='middle' font-size='40' font-weight='bold' fill='%2360a5fa' font-family='system-ui'>PhysioTimer</text></svg>",
+      "sizes": "540x720",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["health", "fitness"],
+  "screenshots_ios": true
+}
