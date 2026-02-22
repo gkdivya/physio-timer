@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhysioTimer - Guided Exercise Coach</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      color: white;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Setup Screen */
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #60a5fa, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      margin-bottom: 30px;
+    }
+
+    .section {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #60a5fa;
+    }
+
+    .exercise-item {
+      background: rgba(51, 65, 85, 0.5);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-between;
+      align-items: center;
+    }
+
+    .exercise-info {
+      flex: 1;
+    }
+
+    .exercise-name {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .exercise-details {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .exercise-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      background: #0ea5e9;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      background: #0284c7;
+      transform: translateY(-2px);
+    }
+
+    button.danger {
+      background: #dc2626;
+      padding: 8px 12px;
+    }
+
+    button.danger:hover {
+      background: #b91c1c;
+    }
+
+    button.success {
+      background: #10b981;
+    }
+
+    button.success:hover {
+      background: #059669;
+    }
+
+    button.secondary {
+      background: #475569;
+    }
+
+    button.secondary:hover {
+      background: #334155;
+    }
+
+    button.primary {
+      background: linear-gradient(90deg, #0ea5e9, #06b6d4);
+      width: 100%;
+      padding: 15px;
+      font-size: 1rem;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: white;
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    input::placeholder {
+      color: #64748b;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    .input-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-bottom: 5px;
+    }
+
+    .preset-btn {
+      text-align: left;
+      background: rgba(51, 65, 85, 0.5);
+      border: 1px solid #334155;
+      padding: 15px;
+      margin-bottom: 10px;
+      transition: all 0.3s;
+    }
+
+    .preset-btn:hover {
+      border-color: #0ea5e9;
+      background: rgba(14, 165, 233, 0.1);
+    }
+
+    .preset-title {
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 5px;
+    }
+
+    .preset-count {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 100;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      padding: 25px;
+      max-width: 400px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal h2 {
+      margin-bottom: 20px;
+      color: #60a5fa;
+    }
+
+    /* Active Screen */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #334155;
+      z-index: 10;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0ea5e9, #06b6d4);
+      transition: width 0.3s;
+    }
+
+    .timer-section {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .exercise-counter {
+      color: #94a3b8;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+
+    .exercise-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #60a5fa;
+      margin-bottom: 10px;
+    }
+
+    .set-info {
+      color: #cbd5e1;
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+    }
+
+    .timer-display {
+      font-size: 6rem;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+      margin: 30px 0;
+      padding: 30px;
+      border-radius: 16px;
+      border: 3px solid;
+      transition: all 0.3s;
+    }
+
+    .timer-display.ready {
+      border-color: #eab308;
+      background: rgba(234, 179, 8, 0.1);
+      color: #fcd34d;
+    }
+
+    .timer-display.holding {
+      border-color: #0ea5e9;
+      background: rgba(14, 165, 233, 0.1);
+      color: #60a5fa;
+    }
+
+    .timer-display.resting {
+      border-color: #a855f7;
+      background: rgba(168, 85, 247, 0.1);
+      color: #d8b4fe;
+    }
+
+    .phase-label {
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+
+    .phase-indicators {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 30px;
+    }
+
+    .phase-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #334155;
+      transition: all 0.3s;
+    }
+
+    .phase-dot.active {
+      width: 32px;
+      border-radius: 6px;
+      background: #0ea5e9;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .control-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .control-btn.play-pause {
+      background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+      width: 80px;
+      height: 80px;
+    }
+
+    .control-btn.secondary {
+      background: #475569;
+      width: 60px;
+      height: 60px;
+    }
+
+    .end-btn {
+      width: 100%;
+      background: #dc2626;
+      padding: 15px;
+    }
+
+    /* Paused Dialog */
+    .paused-dialog {
+      text-align: center;
+    }
+
+    .paused-title {
+      font-size: 2rem;
+      color: #fcd34d;
+      margin-bottom: 20px;
+    }
+
+    .paused-info {
+      background: rgba(51, 65, 85, 0.5);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .paused-info p {
+      margin-bottom: 8px;
+      color: #cbd5e1;
+    }
+
+    .paused-exercise {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #60a5fa;
+      margin: 10px 0;
+    }
+
+    .paused-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .paused-buttons button {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- SETUP SCREEN -->
+    <div id="setupScreen" class="screen active">
+      <h1>PhysioTimer</h1>
+      <p class="subtitle">Your guided exercise companion</p>
+
+      <!-- Current Routine -->
+      <div id="routineSection" class="section" style="display: none;">
+        <div class="section-title">Your Routine</div>
+        <div id="exerciseList"></div>
+
+        <div class="button-group">
+          <button class="success" onclick="startSession()">Start Session</button>
+          <button class="secondary" onclick="exportRoutine()">Export</button>
+        </div>
+
+        <input type="text" id="routineName" placeholder="Routine name..." style="margin-top: 10px;">
+        <button class="primary" onclick="saveRoutine()" style="width: 100%;">Save Routine</button>
+      </div>
+
+      <!-- Add Exercise Form -->
+      <div id="addExerciseForm" class="section" style="display: none;">
+        <div class="section-title" id="formTitle">Add Exercise</div>
+        <input type="text" id="exerciseName" placeholder="Exercise name">
+        <div class="input-group">
+          <div>
+            <label>Sets</label>
+            <input type="number" id="exerciseSets" value="3" min="1">
+          </div>
+          <div>
+            <label>Hold (s)</label>
+            <input type="number" id="exerciseHold" value="10" min="1">
+          </div>
+          <div>
+            <label>Rest (s)</label>
+            <input type="number" id="exerciseRest" value="10" min="1">
+          </div>
+          <div>
+            <label>Before Next (s)</label>
+            <input type="number" id="exerciseGap" value="5" min="1">
+          </div>
+        </div>
+        <div class="button-group">
+          <button class="secondary" onclick="cancelAddExercise()">Cancel</button>
+          <button class="success" onclick="addExercise()" id="addExerciseBtn">Add</button>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="button-group" id="setupButtons">
+        <button class="primary" onclick="showAddExerciseForm()">+ Add Exercise</button>
+        <button class="primary" onclick="importRoutine()">⬆ Import</button>
+      </div>
+
+      <!-- Quick Templates -->
+      <div class="section">
+        <div class="section-title">Quick Templates</div>
+        <button class="preset-btn" onclick="loadPreset('shoulder')">
+          <div class="preset-title">Shoulder Rehab</div>
+          <div class="preset-count">3 exercises</div>
+        </button>
+        <button class="preset-btn" onclick="loadPreset('knee')">
+          <div class="preset-title">Knee Recovery</div>
+          <div class="preset-count">3 exercises</div>
+        </button>
+        <button class="preset-btn" onclick="loadPreset('core')">
+          <div class="preset-title">Core Stability</div>
+          <div class="preset-count">2 exercises</div>
+        </button>
+      </div>
+
+      <!-- Saved Routines -->
+      <div id="savedRoutinesSection" class="section" style="display: none;">
+        <div class="section-title">Saved Routines</div>
+        <div id="savedRoutinesList"></div>
+      </div>
+    </div>
+
+    <!-- ACTIVE SESSION SCREEN -->
+    <div id="activeScreen" class="screen">
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+
+      <div class="timer-section">
+        <div class="exercise-counter" id="exerciseCounter"></div>
+        <div class="exercise-title" id="exerciseName"></div>
+        <div class="set-info" id="setInfo"></div>
+
+        <div class="phase-label" id="phaseLabel">Get Ready</div>
+        <div class="timer-display ready" id="timerDisplay">5</div>
+
+        <div class="phase-indicators" id="phaseIndicators"></div>
+
+        <div class="controls">
+          <button class="control-btn play-pause" id="playPauseBtn" onclick="toggleTimer()">▶</button>
+          <button class="control-btn secondary" onclick="handlePauseSession()" title="Pause session">⏸</button>
+          <button class="control-btn secondary" onclick="skipExercise()" title="Skip to next">⏭</button>
+        </div>
+
+        <button class="end-btn" onclick="endSession()">End Session</button>
+      </div>
+    </div>
+
+    <!-- PAUSED DIALOG -->
+    <div id="pausedDialog" class="modal">
+      <div class="modal-content paused-dialog">
+        <div class="paused-title">⏸ Session Paused</div>
+        <div class="paused-info">
+          <p id="pausedExerciseNum"></p>
+          <div class="paused-exercise" id="pausedExerciseName"></div>
+          <p id="pausedSetInfo"></p>
+        </div>
+        <div class="paused-buttons">
+          <button class="success" onclick="resumeSession()" style="width: 100%;">▶ Resume Session</button>
+          <button class="secondary" onclick="goBackSetup()" style="width: 100%;">Back to Setup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let exercises = [];
+    let currentExerciseIdx = 0;
+    let currentSetIdx = 0;
+    let timeLeft = 0;
+    let isRunning = false;
+    let phase = 'ready';
+    let timerInterval = null;
+    let savedRoutines = [];
+    let editingIdx = null;
+    let pausedSession = null;
+
+    // Presets
+    const presets = {
+      shoulder: {
+        name: 'Shoulder Rehab',
+        exercises: [
+          { name: 'Shoulder Circles', sets: 3, holdTime: 5, restTime: 10, gapTime: 5 },
+          { name: 'Arm Raises', sets: 3, holdTime: 10, restTime: 15, gapTime: 5 },
+          { name: 'Scapular Squeezes', sets: 3, holdTime: 5, restTime: 10, gapTime: 5 }
+        ]
+      },
+      knee: {
+        name: 'Knee Recovery',
+        exercises: [
+          { name: 'Quad Sets', sets: 4, holdTime: 5, restTime: 10, gapTime: 5 },
+          { name: 'Straight Leg Raises', sets: 3, holdTime: 5, restTime: 15, gapTime: 5 },
+          { name: 'Hamstring Stretch', sets: 3, holdTime: 10, restTime: 10, gapTime: 5 }
+        ]
+      },
+      core: {
+        name: 'Core Stability',
+        exercises: [
+          { name: 'Glute Bridge Hold', sets: 3, holdTime: 10, restTime: 15, gapTime: 5 },
+          { name: 'Plank', sets: 3, holdTime: 10, restTime: 20, gapTime: 5 }
+        ]
+      }
+    };
+
+    // Load from localStorage
+    function loadSavedRoutines() {
+      const saved = localStorage.getItem('physioRoutines');
+      if (saved) savedRoutines = JSON.parse(saved);
+      updateSavedRoutinesList();
+    }
+
+    // Audio functions
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.2;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    function beep(frequency = 800, duration = 200) {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration / 1000);
+      } catch (e) {}
+    }
+
+    // Setup Screen Functions
+    function showAddExerciseForm() {
+      editingIdx = null;
+      document.getElementById('exerciseName').value = '';
+      document.getElementById('exerciseSets').value = '3';
+      document.getElementById('exerciseHold').value = '10';
+      document.getElementById('exerciseRest').value = '10';
+      document.getElementById('exerciseGap').value = '5';
+      document.getElementById('formTitle').textContent = 'Add Exercise';
+      document.getElementById('addExerciseBtn').textContent = 'Add';
+      document.getElementById('addExerciseForm').style.display = 'block';
+    }
+
+    function editExercise(idx) {
+      editingIdx = idx;
+      const ex = exercises[idx];
+      document.getElementById('exerciseName').value = ex.name;
+      document.getElementById('exerciseSets').value = ex.sets;
+      document.getElementById('exerciseHold').value = ex.holdTime;
+      document.getElementById('exerciseRest').value = ex.restTime;
+      document.getElementById('exerciseGap').value = ex.gapTime || 5;
+      document.getElementById('formTitle').textContent = 'Edit Exercise';
+      document.getElementById('addExerciseBtn').textContent = 'Save';
+      document.getElementById('addExerciseForm').style.display = 'block';
+    }
+
+    function cancelAddExercise() {
+      document.getElementById('addExerciseForm').style.display = 'none';
+      editingIdx = null;
+    }
+
+    function addExercise() {
+      const name = document.getElementById('exerciseName').value.trim();
+      const sets = parseInt(document.getElementById('exerciseSets').value) || 1;
+      const holdTime = parseInt(document.getElementById('exerciseHold').value) || 5;
+      const restTime = parseInt(document.getElementById('exerciseRest').value) || 5;
+      const gapTime = parseInt(document.getElementById('exerciseGap').value) || 5;
+
+      if (!name) {
+        alert('Enter exercise name');
+        return;
+      }
+
+      const newEx = { name, sets, holdTime, restTime, gapTime };
+
+      if (editingIdx !== null) {
+        exercises[editingIdx] = newEx;
+      } else {
+        exercises.push(newEx);
+      }
+
+      updateExerciseList();
+      cancelAddExercise();
+    }
+
+    function deleteExercise(idx) {
+      exercises.splice(idx, 1);
+      updateExerciseList();
+    }
+
+    function updateExerciseList() {
+      const list = document.getElementById('exerciseList');
+      list.innerHTML = exercises.map((ex, idx) => `
+        <div class="exercise-item">
+          <div class="exercise-info">
+            <div class="exercise-name">${ex.name}</div>
+            <div class="exercise-details">${ex.sets} sets × ${ex.holdTime}s hold + ${ex.restTime}s rest | ${ex.gapTime}s before next</div>
+          </div>
+          <div class="exercise-actions">
+            <button class="secondary" style="padding: 8px 12px; font-size: 0.8rem;" onclick="editExercise(${idx})">Edit</button>
+            <button class="danger" onclick="deleteExercise(${idx})">✕</button>
+          </div>
+        </div>
+      `).join('');
+
+      if (exercises.length > 0) {
+        document.getElementById('routineSection').style.display = 'block';
+        document.getElementById('setupButtons').style.display = 'grid';
+      } else {
+        document.getElementById('routineSection').style.display = 'none';
+      }
+    }
+
+    function loadPreset(key) {
+      exercises = JSON.parse(JSON.stringify(presets[key].exercises));
+      updateExerciseList();
+    }
+
+    function saveRoutine() {
+      const name = document.getElementById('routineName').value.trim();
+      if (!name) {
+        alert('Enter routine name');
+        return;
+      }
+      savedRoutines.push({ name, exercises: JSON.parse(JSON.stringify(exercises)) });
+      localStorage.setItem('physioRoutines', JSON.stringify(savedRoutines));
+      document.getElementById('routineName').value = '';
+      updateSavedRoutinesList();
+      alert('Routine saved!');
+    }
+
+    function updateSavedRoutinesList() {
+      const section = document.getElementById('savedRoutinesSection');
+      const list = document.getElementById('savedRoutinesList');
+
+      if (savedRoutines.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      list.innerHTML = savedRoutines.map((routine, idx) => `
+        <button class="preset-btn" onclick="loadSavedRoutine(${idx})" style="cursor: pointer; text-align: left;">
+          <div class="preset-title">${routine.name}</div>
+          <div class="preset-count">${routine.exercises.length} exercises</div>
+        </button>
+        <button class="danger" style="width: 100%; margin-bottom: 10px;" onclick="deleteSavedRoutine(${idx})">Delete</button>
+      `).join('');
+    }
+
+    function loadSavedRoutine(idx) {
+      exercises = JSON.parse(JSON.stringify(savedRoutines[idx].exercises));
+      updateExerciseList();
+    }
+
+    function deleteSavedRoutine(idx) {
+      if (confirm('Delete this routine?')) {
+        savedRoutines.splice(idx, 1);
+        localStorage.setItem('physioRoutines', JSON.stringify(savedRoutines));
+        updateSavedRoutinesList();
+      }
+    }
+
+    function exportRoutine() {
+      const data = JSON.stringify(exercises, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `routine-${Date.now()}.json`;
+      a.click();
+    }
+
+    function importRoutine() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'application/json';
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            exercises = JSON.parse(event.target.result);
+            updateExerciseList();
+          } catch {
+            alert('Invalid file');
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
+    }
+
+    // Active Session Functions
+    function startSession() {
+      if (exercises.length === 0) {
+        alert('Add exercises first!');
+        return;
+      }
+      currentExerciseIdx = 0;
+      currentSetIdx = 0;
+      phase = 'ready';
+      timeLeft = 5;
+      isRunning = false;
+      pausedSession = null;
+      speak('Starting');
+      beep(900, 150);
+      showActiveScreen();
+    }
+
+    function showActiveScreen() {
+      document.getElementById('setupScreen').classList.remove('active');
+      document.getElementById('activeScreen').classList.add('active');
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      const ex = exercises[currentExerciseIdx];
+      document.getElementById('exerciseCounter').textContent = `Exercise ${currentExerciseIdx + 1} of ${exercises.length}`;
+      document.getElementById('exerciseName').textContent = ex.name;
+      document.getElementById('setInfo').textContent = `Set ${currentSetIdx + 1} of ${ex.sets}`;
+      document.getElementById('timerDisplay').textContent = timeLeft;
+
+      // Update phase styling
+      const display = document.getElementById('timerDisplay');
+      const label = document.getElementById('phaseLabel');
+      display.className = 'timer-display ' + phase;
+
+      if (phase === 'ready') {
+        label.textContent = '🔔 Get Ready';
+      } else if (phase === 'holding') {
+        label.textContent = '💪 Hold It';
+      } else {
+        label.textContent = '😮‍💨 Rest';
+      }
+
+      // Update phase indicators
+      const indicators = document.getElementById('phaseIndicators');
+      indicators.innerHTML = ['ready', 'holding', 'resting'].map(p => 
+        `<div class="phase-dot ${phase === p ? 'active' : ''}"></div>`
+      ).join('');
+
+      // Update progress
+      const progress = ((currentExerciseIdx + 1) / exercises.length) * 100;
+      document.getElementById('progressFill').style.width = progress + '%';
+
+      // Update play/pause button
+      const btn = document.getElementById('playPauseBtn');
+      btn.textContent = isRunning ? '⏸' : '▶';
+    }
+
+    function toggleTimer() {
+      isRunning = !isRunning;
+      if (isRunning) {
+        startTimerInterval();
+      } else {
+        clearInterval(timerInterval);
+      }
+      updateDisplay();
+    }
+
+    function startTimerInterval() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+
+        if (phase === 'holding' && timeLeft > 0 && timeLeft <= 5) {
+          speak(timeLeft.toString());
+          beep(1000, 150);
+        }
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          completePhase();
+        }
+
+        updateDisplay();
+      }, 1000);
+    }
+
+    function completePhase() {
+      const ex = exercises[currentExerciseIdx];
+
+      if (phase === 'ready') {
+        phase = 'holding';
+        timeLeft = ex.holdTime;
+        speak('Go');
+        beep(1200, 200);
+        isRunning = true;
+        startTimerInterval();
+      } else if (phase === 'holding') {
+        if (currentSetIdx < ex.sets - 1) {
+          phase = 'resting';
+          timeLeft = ex.restTime;
+          beep(800, 150);
+          isRunning = true;
+          startTimerInterval();
+        } else {
+          moveToNextExercise();
+        }
+      } else if (phase === 'resting') {
+        currentSetIdx++;
+        phase = 'holding';
+        timeLeft = ex.holdTime;
+        speak('Go');
+        beep(1200, 200);
+        isRunning = true;
+        startTimerInterval();
+      }
+    }
+
+    function moveToNextExercise() {
+      if (currentExerciseIdx < exercises.length - 1) {
+        currentExerciseIdx++;
+        currentSetIdx = 0;
+        phase = 'ready';
+        timeLeft = exercises[currentExerciseIdx].gapTime || 5;
+        speak('Next exercise');
+        beep(900, 150);
+        isRunning = true;
+        startTimerInterval();
+      } else {
+        isRunning = false;
+        clearInterval(timerInterval);
+        speak('Done');
+        beep(1400, 300);
+        setTimeout(() => {
+          document.getElementById('activeScreen').classList.remove('active');
+          document.getElementById('setupScreen').classList.add('active');
+          exercises = [];
+          updateExerciseList();
+        }, 1000);
+      }
+    }
+
+    function skipExercise() {
+      isRunning = false;
+      clearInterval(timerInterval);
+      moveToNextExercise();
+    }
+
+    function handlePauseSession() {
+      isRunning = false;
+      clearInterval(timerInterval);
+      pausedSession = {
+        currentExerciseIdx,
+        currentSetIdx,
+        timeLeft,
+        phase,
+        exercises: JSON.parse(JSON.stringify(exercises))
+      };
+      speak('Paused');
+      beep(600, 150);
+      document.getElementById('pausedDialog').classList.add('active');
+      updatePausedDialog();
+    }
+
+    function updatePausedDialog() {
+      const ps = pausedSession;
+      const ex = ps.exercises[ps.currentExerciseIdx];
+      document.getElementById('pausedExerciseNum').textContent = `Exercise ${ps.currentExerciseIdx + 1} of ${ps.exercises.length}`;
+      document.getElementById('pausedExerciseName').textContent = ex.name;
+      document.getElementById('pausedSetInfo').textContent = `Set ${ps.currentSetIdx + 1} • ${ps.timeLeft}s remaining`;
+    }
+
+    function resumeSession() {
+      const ps = pausedSession;
+      exercises = ps.exercises;
+      currentExerciseIdx = ps.currentExerciseIdx;
+      currentSetIdx = ps.currentSetIdx;
+      timeLeft = ps.timeLeft;
+      phase = ps.phase;
+      pausedSession = null;
+      isRunning = true;
+      speak('Resuming');
+      beep(900, 150);
+      document.getElementById('pausedDialog').classList.remove('active');
+      updateDisplay();
+      startTimerInterval();
+    }
+
+    function goBackSetup() {
+      pausedSession = null;
+      document.getElementById('pausedDialog').classList.remove('active');
+      document.getElementById('activeScreen').classList.remove('active');
+      document.getElementById('setupScreen').classList.add('active');
+      exercises = [];
+      updateExerciseList();
+    }
+
+    function endSession() {
+      if (confirm('End this session?')) {
+        goBackSetup();
+      }
+    }
+
+    // Initialize
+    loadSavedRoutines();
+  </script>
+</body>
+</html>
